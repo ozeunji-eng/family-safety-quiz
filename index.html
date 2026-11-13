@@ -1,0 +1,630 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>가정폭력 예방교육 퀴즈 및 소감문</title>
+  <!-- Pretendard 웹폰트 로드 -->
+  <link rel="stylesheet" as="style" crossorigin href="https://cdn.jsdelivr.net/gh/orioncactus/pretendard@v1.3.9/dist/web/static/pretendard.min.css" />
+  <!-- Tailwind CSS 로드 -->
+  <script src="https://cdn.tailwindcss.com"></script>
+  <script>
+    tailwind.config = {
+      theme: {
+        extend: {
+          fontFamily: {
+            sans: ['Pretendard', '-apple-system', 'BlinkMacSystemFont', 'system-ui', 'Roboto', 'sans-serif'],
+          },
+          colors: {
+            lavender: {
+              50: '#F5F3FF',
+              100: '#EDE9FE',
+              200: '#DDD6FE',
+              300: '#C4B5FD',
+              500: '#8B5CF6',
+              600: '#7C3AED',
+              700: '#6D28D9',
+            }
+          }
+        }
+      }
+    };
+  </script>
+  <style>
+    body {
+      font-family: 'Pretendard', -apple-system, BlinkMacSystemFont, system-ui, Roboto, sans-serif;
+      background-color: #F5F3FF;
+      color: #1F2937;
+    }
+    /* 부드러운 화면 전환 효과 */
+    .fade-in {
+      animation: fadeIn 0.25s ease-out;
+    }
+    @keyframes fadeIn {
+      from {
+        opacity: 0;
+        transform: translateY(6px);
+      }
+      to {
+        opacity: 1;
+        transform: translateY(0);
+      }
+    }
+  </style>
+</head>
+<body class="min-h-screen flex flex-col items-center justify-center p-4 sm:p-6">
+
+  <!-- 메인 중앙 카드 컨테이너 -->
+  <main class="w-full max-w-[720px] bg-white border border-lavender-200 rounded-2xl shadow-[0_10px_25px_-5px_rgba(139,92,246,0.08)] overflow-hidden">
+
+    <!-- 1단계: 학생 정보 입력 화면 -->
+    <section id="step1Screen" class="p-6 sm:p-10 fade-in">
+      <div class="border-b border-lavender-100 pb-5 mb-7">
+        <h1 class="text-xl sm:text-2xl font-bold text-gray-800 tracking-tight">
+          가정폭력 예방교육 퀴즈 및 소감문
+        </h1>
+      </div>
+
+      <form id="studentForm" class="space-y-5" novalidate>
+        <div>
+          <label for="studentIdInput" class="block text-sm font-semibold text-gray-700 mb-2">
+            학번
+          </label>
+          <input
+            type="text"
+            id="studentIdInput"
+            placeholder="예: 10101"
+            autocomplete="off"
+            class="w-full px-4 py-3 text-base bg-lavender-50 border border-lavender-200 rounded-xl text-gray-800 placeholder-gray-400 focus:outline-none focus:bg-white focus:border-violet-500 focus:ring-2 focus:ring-violet-200 transition-all"
+          />
+        </div>
+
+        <div>
+          <label for="studentNameInput" class="block text-sm font-semibold text-gray-700 mb-2">
+            이름
+          </label>
+          <input
+            type="text"
+            id="studentNameInput"
+            placeholder="예: 홍길동"
+            autocomplete="off"
+            class="w-full px-4 py-3 text-base bg-lavender-50 border border-lavender-200 rounded-xl text-gray-800 placeholder-gray-400 focus:outline-none focus:bg-white focus:border-violet-500 focus:ring-2 focus:ring-violet-200 transition-all"
+          />
+        </div>
+
+        <div class="pt-3">
+          <button
+            type="submit"
+            id="startQuizBtn"
+            disabled
+            class="w-full py-3.5 px-6 text-base font-semibold rounded-xl transition-all bg-violet-200 text-violet-400 cursor-not-allowed"
+          >
+            퀴즈 시작
+          </button>
+        </div>
+      </form>
+    </section>
+
+    <!-- 2단계: 10문항 객관식 퀴즈 화면 -->
+    <section id="step2Screen" class="hidden p-6 sm:p-10 fade-in">
+      <!-- 상단 진행 상태 및 현재 문항 오답 횟수 -->
+      <div class="flex flex-wrap items-center justify-between gap-2 mb-3">
+        <span id="quizProgressText" class="inline-flex items-center px-3 py-1 text-sm font-bold text-violet-700 bg-lavender-100 rounded-lg">
+          1 / 10
+        </span>
+        <span id="currentWrongBadge" class="inline-flex items-center px-3 py-1 text-xs sm:text-sm font-medium text-gray-700 bg-lavender-50 border border-lavender-200 rounded-lg">
+          현재 문항 틀린 횟수: 0회
+        </span>
+      </div>
+
+      <!-- 진행률 바 -->
+      <div class="w-full h-2 bg-lavender-100 rounded-full overflow-hidden mb-7">
+        <div id="quizProgressBar" class="h-full bg-violet-500 transition-all duration-300" style="width: 10%;"></div>
+      </div>
+
+      <!-- 문제 텍스트 -->
+      <div class="mb-6">
+        <h2 id="questionText" class="text-lg sm:text-xl font-bold text-gray-800 leading-relaxed"></h2>
+      </div>
+
+      <!-- 4지선다 선택지 영역 -->
+      <div id="optionsContainer" class="space-y-3 mb-6"></div>
+
+      <!-- 정·오답 피드백 메시지 영역 -->
+      <div id="feedbackBox" class="hidden px-4 py-3 rounded-xl text-sm font-semibold mb-6"></div>
+
+      <!-- 다음 문제 / 소감문 작성하기 버튼 영역 -->
+      <div id="nextBtnContainer" class="hidden">
+        <button
+          type="button"
+          id="nextQuestionBtn"
+          class="w-full py-3.5 px-6 text-base font-semibold text-white bg-violet-600 hover:bg-violet-700 rounded-xl shadow-sm transition-colors"
+        >
+          다음 문제
+        </button>
+      </div>
+    </section>
+
+    <!-- 3단계: 소감문 작성 화면 -->
+    <section id="step3Screen" class="hidden p-6 sm:p-10 fade-in">
+      <div class="border-b border-lavender-100 pb-4 mb-6">
+        <h2 class="text-lg sm:text-xl font-bold text-gray-800">
+          교육 소감문 작성
+        </h2>
+      </div>
+
+      <!-- 제시 질문 박스 -->
+      <div class="p-4 sm:p-5 bg-lavender-50 border border-lavender-200 rounded-xl mb-5">
+        <p class="text-sm sm:text-base font-semibold text-gray-800 leading-relaxed">
+          가정폭력을 예방하기 위해서 가족 구성원들은 어떤 노력을 해야할까요? 또한 주변에서 가정폭력이 발생했다는 사실을 알게 되면 어떻게 대처해야 할까요? 이번 교육을 통해 알게 된 점과 함께 작성해 보세요.
+        </p>
+      </div>
+
+      <!-- 소감문 입력창 -->
+      <div class="mb-2">
+        <textarea
+          id="reflectionInput"
+          rows="7"
+          placeholder="내용을 입력해 주세요."
+          class="w-full p-4 text-base bg-white border border-lavender-200 rounded-xl text-gray-800 placeholder-gray-400 focus:outline-none focus:border-violet-500 focus:ring-2 focus:ring-violet-200 transition-all resize-y leading-relaxed"
+        ></textarea>
+      </div>
+
+      <!-- 실시간 글자 수 카운터 -->
+      <div class="flex items-center justify-end mb-6">
+        <span id="charCountText" class="text-sm font-semibold text-violet-700">
+          공백 포함 글자 수: 0자 / 최소 50자
+        </span>
+      </div>
+
+      <!-- 제출 버튼 -->
+      <button
+        type="button"
+        id="submitAllBtn"
+        disabled
+        class="w-full py-3.5 px-6 text-base font-semibold rounded-xl transition-all bg-violet-200 text-violet-400 cursor-not-allowed"
+      >
+        제출하기
+      </button>
+    </section>
+
+    <!-- 4단계: 제출 완료 및 결과 확인 화면 -->
+    <section id="step4Screen" class="hidden p-6 sm:p-10 fade-in">
+      <div class="flex flex-wrap items-center justify-between gap-2 border-b border-lavender-100 pb-4 mb-6">
+        <h2 class="text-xl font-bold text-gray-800">
+          제출 완료
+        </h2>
+        <span id="sheetResultBadge" class="px-3 py-1 text-xs font-semibold rounded-lg bg-lavender-100 text-violet-700">
+          전송 확인 중
+        </span>
+      </div>
+
+      <!-- 학생 정보 및 정답률 요약 -->
+      <div class="grid grid-cols-2 sm:grid-cols-4 gap-3 mb-6">
+        <div class="p-3.5 bg-lavender-50 border border-lavender-200 rounded-xl">
+          <div class="text-xs font-medium text-gray-500 mb-1">학번</div>
+          <div id="resultStudentId" class="text-base font-bold text-gray-800"></div>
+        </div>
+        <div class="p-3.5 bg-lavender-50 border border-lavender-200 rounded-xl">
+          <div class="text-xs font-medium text-gray-500 mb-1">이름</div>
+          <div id="resultStudentName" class="text-base font-bold text-gray-800"></div>
+        </div>
+        <div class="p-3.5 bg-lavender-100 border border-lavender-200 rounded-xl">
+          <div class="text-xs font-medium text-violet-700 mb-1">정답률</div>
+          <div id="resultAccuracy" class="text-base font-bold text-violet-700"></div>
+        </div>
+        <div class="p-3.5 bg-lavender-50 border border-lavender-200 rounded-xl">
+          <div class="text-xs font-medium text-gray-500 mb-1">총 틀린 횟수</div>
+          <div id="resultTotalWrong" class="text-base font-bold text-gray-800"></div>
+        </div>
+      </div>
+
+      <!-- 문항별 틀린 횟수 표 -->
+      <div class="mb-6">
+        <h3 class="text-sm font-bold text-gray-700 mb-2.5">문항별 틀린 횟수</h3>
+        <div class="overflow-x-auto border border-lavender-200 rounded-xl">
+          <table class="w-full text-center text-sm border-collapse">
+            <thead>
+              <tr class="bg-lavender-100 text-violet-800 font-semibold">
+                <th class="py-2 px-2 border-b border-r border-lavender-200">1번</th>
+                <th class="py-2 px-2 border-b border-r border-lavender-200">2번</th>
+                <th class="py-2 px-2 border-b border-r border-lavender-200">3번</th>
+                <th class="py-2 px-2 border-b border-r border-lavender-200">4번</th>
+                <th class="py-2 px-2 border-b border-lavender-200">5번</th>
+              </tr>
+            </thead>
+            <tbody>
+              <tr id="wrongRow1To5" class="bg-white text-gray-800 font-medium"></tr>
+            </tbody>
+            <thead>
+              <tr class="bg-lavender-100 text-violet-800 font-semibold">
+                <th class="py-2 px-2 border-t border-b border-r border-lavender-200">6번</th>
+                <th class="py-2 px-2 border-t border-b border-r border-lavender-200">7번</th>
+                <th class="py-2 px-2 border-t border-b border-r border-lavender-200">8번</th>
+                <th class="py-2 px-2 border-t border-b border-r border-lavender-200">9번</th>
+                <th class="py-2 px-2 border-t border-b border-lavender-200">10번</th>
+              </tr>
+            </thead>
+            <tbody>
+              <tr id="wrongRow6To10" class="bg-white text-gray-800 font-medium"></tr>
+            </tbody>
+          </table>
+        </div>
+      </div>
+
+      <!-- 작성한 소감문 표시 -->
+      <div>
+        <h3 class="text-sm font-bold text-gray-700 mb-2">작성한 소감문</h3>
+        <div id="resultReflection" class="p-4 bg-lavender-50 border border-lavender-200 rounded-xl text-sm sm:text-base text-gray-800 whitespace-pre-wrap leading-relaxed"></div>
+      </div>
+    </section>
+
+  </main>
+
+  <script>
+    // 구글 시트 연동용 Apps Script 웹 앱 URL
+    const GOOGLE_SCRIPT_URL = "https://script.google.com/macros/s/AKfycbzu5B_Udb9Glnahn5WtlxDKB2g9evg4h1tVYHkSCzsdTfKyaiixyc0R2UCoV2OwYjTv/exec";
+
+    // 10문항 객관식 퀴즈 데이터 (문제, 선택지, 정답 인덱스 0~3)
+    const QUIZ_DATA = [
+      {
+        question: "1. 영상 도입부에서 강사가 '즐거운 나의 집(Home Sweet Home)'이라는 표현이 때때로 반어법으로 쓰인다고 언급하며 강조한 '진정으로 따뜻한 가정'의 조건은 무엇인가요?",
+        options: [
+          "① 가족 구성원 모두가 함께 노력하여 가꾸어 가는 것",
+          "② 경제적으로 풍족하고 여유로운 환경을 갖추는 것",
+          "③ 부모님의 말씀에 자녀가 무조건 순종하는 것",
+          "④ 갈등이 생기지 않도록 서로의 일에 관심을 끄는 것"
+        ],
+        answerIndex: 0
+      },
+      {
+        question: "2. 영상에서 설명하는 '가정폭력의 범위와 발생 과정'에 대한 이해로 가장 적절한 것은 무엇인가요?",
+        options: [
+          "① 법적 혼인 관계가 성립된 부부 사이에서만 발생한다.",
+          "② 신체적 폭력이 동반되어야만 가정폭력으로 인정된다.",
+          "③ 친밀감을 이용해 상대를 조금씩 통제하는 것에서 시작된다.",
+          "④ 아무런 전조 없이 어느 날 갑자기 물리적 폭력으로 시작된다."
+        ],
+        answerIndex: 2
+      },
+      {
+        question: "3. 영상에서 설명한 '가정폭력이 사소하게 여겨지는 사회적 인식'이 가져오는 문제점은 무엇인가요?",
+        options: [
+          "① 가해자가 자신의 잘못을 스스로 깨닫고 반성하게 됨",
+          "② 피해자가 주변에 도움을 요청하지 못하고 위축됨",
+          "③ 경찰이나 전문 기관이 사건에 지나치게 빨리 개입함",
+          "④ 가족 간의 갈등이 시간이 지나면서 자연스럽게 해결됨"
+        ],
+        answerIndex: 1
+      },
+      {
+        question: "4. 다음 중 영상에서 설명한 가정폭력의 여섯 가지 유형 중 '통제적 유형'에 해당하는 사례로 가장 적절한 것은 무엇인가요?",
+        options: [
+          "① 상대방에게 심한 욕설을 하거나 싫어하는 별명을 부르는 행위",
+          "② 물건을 집어 던지거나 신체를 밀치고 때리는 행위",
+          "③ 빌린 돈을 갚지 않거나 원치 않는 경제적 부담을 주는 행위",
+          "④ 휴대폰 비밀번호를 검사하고 만나는 친구를 제한하는 행위"
+        ],
+        answerIndex: 3
+      },
+      {
+        question: "5. 영상 속 첫 번째 사연(중학교 1학년 학생의 이야기)에서 주인공이 아버지의 행동에 대해 겪고 있는 심리적 어려움으로 가장 적절한 것은 무엇인가요?",
+        options: [
+          "① 아버지의 경제적 부양에 대한 감사함과 통제로 인한 괴로움 사이의 혼란",
+          "② 용돈을 아껴 쓰지 못해 친구들에게 빚을 지게 된 것에 대한 두려움",
+          "③ 아르바이트를 하다가 학교 선생님께 들킬까 봐 걱정하는 불안감",
+          "④ 어머니가 가계부를 쓰지 않아 아버지와 다투게 된 것에 대한 분노"
+        ],
+        answerIndex: 0
+      },
+      {
+        question: "6. 영상 속 두 번째 사연에서 어머니가 자녀에게 다이어트 보조제와 헬스장 이용을 강요하며 사용한 정서적 폭력의 방식은 무엇인가요?",
+        options: [
+          "① 다이어트에 성공하지 못하면 용돈을 끊겠다고 위협함",
+          "② 자녀를 위한 사랑과 희생을 강조하며 죄책감을 심어줌",
+          "③ 친구들 앞에서 자녀의 외모를 비하하며 망신을 줌",
+          "④ 식사를 하지 못하도록 방에 가두고 외출을 금지함"
+        ],
+        answerIndex: 1
+      },
+      {
+        question: "7. 실제 가정폭력 상황에서는 여러 유형의 폭력이 동시에 나타나기도 합니다. 그럼에도 영상에서 폭력의 유형을 세부적으로 나누어 설명한 목적은 무엇인가요?",
+        options: [
+          "① 폭력의 유형에 따라 가해자의 형사 처벌 수위를 다르게 매기기 위함",
+          "② 신체적 폭력이 다른 유형의 폭력보다 훨씬 심각하다는 것을 알리기 위함",
+          "③ 눈에 잘 띄지 않는 사소한 피해도 폭력임을 빠르게 인식하기 위함",
+          "④ 가해자가 어떤 유형의 폭력을 썼는지 스스로 변명할 기회를 주기 위함"
+        ],
+        answerIndex: 2
+      },
+      {
+        question: "8. 가정폭력 피해 상황에서 증거를 남기기 위해 일기나 기록을 작성할 때, 영상에서 권장하는 올바른 방법은 무엇인가요?",
+        options: [
+          "① 날짜나 시간은 생략하고 당시 느꼈던 감정만 자세히 적는다.",
+          "② 기억나지 않는 부분은 당시 상황을 상상하여 자연스럽게 채워 넣는다.",
+          "③ 기록한 내용은 가해자가 볼 수 있도록 거실에 공개해 둔다.",
+          "④ 기억나는 내용과 기억나지 않는 내용을 명확히 구분하여 적는다."
+        ],
+        answerIndex: 3
+      },
+      {
+        question: "9. 영상에서 소개한 가정폭력 피해자 지원 기관 및 보호 제도에 대한 설명으로 옳은 것은 무엇인가요?",
+        options: [
+          "① 가정폭력 상담 전화 1366은 평일 주간 시간에만 운영된다.",
+          "② 해바라기센터에서는 상담, 의료, 법률, 수사 지원을 한곳에서 받을 수 있다.",
+          "③ 청소년은 성인 보호자의 동의 없이는 피해자 지원 서비스를 받을 수 없다.",
+          "④ 가해자의 허락이 없으면 피해자가 다른 지역 학교로 전학을 갈 수 없다."
+        ],
+        answerIndex: 1
+      },
+      {
+        question: "10. 영상의 마지막 부분에서 안전한 가정 문화를 만들기 위해 제안한 '가정 내 평등 실천 방법'으로 가장 적절한 것은 무엇인가요?",
+        options: [
+          "① 가족의 중요한 결정은 경제력을 가진 사람이 단독으로 내린다.",
+          "② 집안일은 성별에 맞는 역할을 나누어 각자 맡은 일만 수행한다.",
+          "③ 가족 회의를 할 때 투표 방식을 도입하고 식사 메뉴를 자녀가 정해 본다.",
+          "④ 가족 간의 화목을 위해 서로의 방에 노크 없이 자유롭게 드나든다."
+        ],
+        answerIndex: 2
+      }
+    ];
+
+    // 애플리케이션 상태 관리
+    const state = {
+      studentId: "",
+      studentName: "",
+      currentQuestionIndex: 0,
+      wrongCounts: new Array(QUIZ_DATA.length).fill(0),
+      isQuestionSolved: false,
+      wrongSelectedIndices: new Set(),
+      reflectionText: "",
+      isSubmitting: false
+    };
+
+    // 주요 DOM 요소 참조
+    const step1Screen = document.getElementById("step1Screen");
+    const step2Screen = document.getElementById("step2Screen");
+    const step3Screen = document.getElementById("step3Screen");
+    const step4Screen = document.getElementById("step4Screen");
+
+    const studentForm = document.getElementById("studentForm");
+    const studentIdInput = document.getElementById("studentIdInput");
+    const studentNameInput = document.getElementById("studentNameInput");
+    const startQuizBtn = document.getElementById("startQuizBtn");
+
+    const quizProgressText = document.getElementById("quizProgressText");
+    const currentWrongBadge = document.getElementById("currentWrongBadge");
+    const quizProgressBar = document.getElementById("quizProgressBar");
+    const questionText = document.getElementById("questionText");
+    const optionsContainer = document.getElementById("optionsContainer");
+    const feedbackBox = document.getElementById("feedbackBox");
+    const nextBtnContainer = document.getElementById("nextBtnContainer");
+    const nextQuestionBtn = document.getElementById("nextQuestionBtn");
+
+    const reflectionInput = document.getElementById("reflectionInput");
+    const charCountText = document.getElementById("charCountText");
+    const submitAllBtn = document.getElementById("submitAllBtn");
+
+    /**
+     * 1단계: 학번, 이름 입력 유효성 검사 및 버튼 활성화
+     */
+    function validateStudentInputs() {
+      const idVal = studentIdInput.value.trim();
+      const nameVal = studentNameInput.value.trim();
+      const isValid = idVal.length > 0 && nameVal.length > 0;
+
+      startQuizBtn.disabled = !isValid;
+      if (isValid) {
+        startQuizBtn.className = "w-full py-3.5 px-6 text-base font-semibold rounded-xl transition-all bg-violet-600 hover:bg-violet-700 text-white shadow-sm cursor-pointer";
+      } else {
+        startQuizBtn.className = "w-full py-3.5 px-6 text-base font-semibold rounded-xl transition-all bg-violet-200 text-violet-400 cursor-not-allowed";
+      }
+    }
+
+    studentIdInput.addEventListener("input", validateStudentInputs);
+    studentNameInput.addEventListener("input", validateStudentInputs);
+
+    studentForm.addEventListener("submit", function (e) {
+      e.preventDefault();
+      const idVal = studentIdInput.value.trim();
+      const nameVal = studentNameInput.value.trim();
+      if (!idVal || !nameVal) return;
+
+      state.studentId = idVal;
+      state.studentName = nameVal;
+
+      step1Screen.classList.add("hidden");
+      step2Screen.classList.remove("hidden");
+      renderQuestion();
+    });
+
+    /**
+     * 2단계: 현재 문항 렌더링
+     */
+    function renderQuestion() {
+      const idx = state.currentQuestionIndex;
+      const currentQ = QUIZ_DATA[idx];
+
+      state.isQuestionSolved = false;
+      state.wrongSelectedIndices.clear();
+
+      quizProgressText.textContent = `${idx + 1} / ${QUIZ_DATA.length}`;
+      currentWrongBadge.textContent = `현재 문항 틀린 횟수: ${state.wrongCounts[idx]}회`;
+      quizProgressBar.style.width = `${((idx + 1) / QUIZ_DATA.length) * 100}%`;
+
+      questionText.textContent = currentQ.question;
+
+      feedbackBox.classList.add("hidden");
+      feedbackBox.textContent = "";
+      nextBtnContainer.classList.add("hidden");
+
+      optionsContainer.innerHTML = "";
+      currentQ.options.forEach((optionText, optionIdx) => {
+        const btn = document.createElement("button");
+        btn.type = "button";
+        btn.textContent = optionText;
+        btn.dataset.index = String(optionIdx);
+        btn.className = "w-full text-left px-4 py-3.5 text-sm sm:text-base font-medium text-gray-800 bg-white border border-lavender-200 rounded-xl hover:bg-lavender-50 hover:border-violet-400 transition-all cursor-pointer";
+
+        btn.addEventListener("click", () => handleOptionClick(optionIdx));
+        optionsContainer.appendChild(btn);
+      });
+    }
+
+    /**
+     * 2단계: 선택지 클릭 시 정답/오답 판정 및 오답 횟수 기록
+     */
+    function handleOptionClick(selectedIndex) {
+      if (state.isQuestionSolved || state.wrongSelectedIndices.has(selectedIndex)) {
+        return;
+      }
+
+      const idx = state.currentQuestionIndex;
+      const currentQ = QUIZ_DATA[idx];
+      const optionButtons = optionsContainer.querySelectorAll("button");
+
+      if (selectedIndex === currentQ.answerIndex) {
+        // 정답 처리
+        state.isQuestionSolved = true;
+
+        optionButtons.forEach((btn, i) => {
+          btn.disabled = true;
+          if (i === selectedIndex) {
+            btn.className = "w-full text-left px-4 py-3.5 text-sm sm:text-base font-bold text-violet-800 bg-lavender-100 border-2 border-violet-600 rounded-xl cursor-default";
+          } else if (!state.wrongSelectedIndices.has(i)) {
+            btn.className = "w-full text-left px-4 py-3.5 text-sm sm:text-base font-medium text-gray-400 bg-gray-50 border border-gray-200 rounded-xl cursor-default";
+          }
+        });
+
+        feedbackBox.textContent = "정답입니다!";
+        feedbackBox.className = "px-4 py-3 rounded-xl text-sm font-semibold mb-6 bg-lavender-100 border border-lavender-300 text-violet-800";
+        feedbackBox.classList.remove("hidden");
+
+        nextQuestionBtn.textContent = idx === QUIZ_DATA.length - 1 ? "소감문 작성하기" : "다음 문제";
+        nextBtnContainer.classList.remove("hidden");
+      } else {
+        // 오답 처리: 해당 문항 오답 횟수 증가 및 재선택 방지
+        state.wrongCounts[idx] += 1;
+        state.wrongSelectedIndices.add(selectedIndex);
+
+        currentWrongBadge.textContent = `현재 문항 틀린 횟수: ${state.wrongCounts[idx]}회`;
+
+        const clickedBtn = optionButtons[selectedIndex];
+        clickedBtn.disabled = true;
+        clickedBtn.className = "w-full text-left px-4 py-3.5 text-sm sm:text-base font-medium text-red-700 bg-red-50 border border-red-300 rounded-xl cursor-not-allowed";
+
+        feedbackBox.textContent = "오답입니다. 다시 선택해 주세요.";
+        feedbackBox.className = "px-4 py-3 rounded-xl text-sm font-semibold mb-6 bg-red-50 border border-red-200 text-red-700";
+        feedbackBox.classList.remove("hidden");
+      }
+    }
+
+    nextQuestionBtn.addEventListener("click", function () {
+      if (!state.isQuestionSolved) return;
+
+      if (state.currentQuestionIndex < QUIZ_DATA.length - 1) {
+        state.currentQuestionIndex += 1;
+        renderQuestion();
+      } else {
+        step2Screen.classList.add("hidden");
+        step3Screen.classList.remove("hidden");
+        reflectionInput.focus();
+      }
+    });
+
+    /**
+     * 3단계: 소감문 글자 수 실시간 확인 (공백 포함 50자 이상)
+     */
+    reflectionInput.addEventListener("input", function () {
+      state.reflectionText = reflectionInput.value;
+      const length = state.reflectionText.length;
+
+      charCountText.textContent = `공백 포함 글자 수: ${length}자 / 최소 50자`;
+
+      if (length >= 50) {
+        submitAllBtn.disabled = false;
+        submitAllBtn.className = "w-full py-3.5 px-6 text-base font-semibold rounded-xl transition-all bg-violet-600 hover:bg-violet-700 text-white shadow-sm cursor-pointer";
+      } else {
+        submitAllBtn.disabled = true;
+        submitAllBtn.className = "w-full py-3.5 px-6 text-base font-semibold rounded-xl transition-all bg-violet-200 text-violet-400 cursor-not-allowed";
+      }
+    });
+
+    /**
+     * 4단계: 데이터 계산, 구글 시트 전송 및 완료 화면 렌더링
+     */
+    submitAllBtn.addEventListener("click", async function () {
+      if (state.reflectionText.length < 50 || state.isSubmitting) return;
+
+      state.isSubmitting = true;
+      submitAllBtn.disabled = true;
+      submitAllBtn.textContent = "제출 중...";
+
+      const totalQuestions = QUIZ_DATA.length;
+      const totalWrong = state.wrongCounts.reduce((acc, cur) => acc + cur, 0);
+      const accuracy = Math.round((totalQuestions / (totalQuestions + totalWrong)) * 100);
+
+      const payload = {
+        studentId: state.studentId,
+        name: state.studentName,
+        accuracy: accuracy,
+        totalWrong: totalWrong,
+        wrongCounts: state.wrongCounts,
+        reflection: state.reflectionText
+      };
+
+      let sheetStatusText = "구글 시트 전송 완료";
+      let sheetStatusClass = "px-3 py-1 text-xs font-semibold rounded-lg bg-lavender-100 text-violet-700";
+
+      try {
+        await fetch(GOOGLE_SCRIPT_URL, {
+          method: "POST",
+          mode: "no-cors",
+          headers: {
+            "Content-Type": "text/plain;charset=utf-8"
+          },
+          body: JSON.stringify(payload)
+        });
+      } catch (error) {
+        sheetStatusText = "구글 시트 전송 실패";
+        sheetStatusClass = "px-3 py-1 text-xs font-semibold rounded-lg bg-red-50 text-red-700";
+      }
+
+      // 완료 화면 데이터 바인딩
+      document.getElementById("resultStudentId").textContent = state.studentId;
+      document.getElementById("resultStudentName").textContent = state.studentName;
+      document.getElementById("resultAccuracy").textContent = `${accuracy}%`;
+      document.getElementById("resultTotalWrong").textContent = `${totalWrong}회`;
+
+      const sheetResultBadge = document.getElementById("sheetResultBadge");
+      sheetResultBadge.textContent = sheetStatusText;
+      sheetResultBadge.className = sheetStatusClass;
+
+      // 1~5번, 6~10번 오답 횟수 테이블 셀 채우기
+      const row1To5 = document.getElementById("wrongRow1To5");
+      const row6To10 = document.getElementById("wrongRow6To10");
+      row1To5.innerHTML = "";
+      row6To10.innerHTML = "";
+
+      for (let i = 0; i < 5; i++) {
+        const td = document.createElement("td");
+        td.className = `py-2.5 px-2 ${i < 4 ? "border-r border-lavender-200" : ""}`;
+        td.textContent = `${state.wrongCounts[i]}회`;
+        row1To5.appendChild(td);
+      }
+
+      for (let i = 5; i < 10; i++) {
+        const td = document.createElement("td");
+        td.className = `py-2.5 px-2 ${i < 9 ? "border-r border-lavender-200" : ""}`;
+        td.textContent = `${state.wrongCounts[i]}회`;
+        row6To10.appendChild(td);
+      }
+
+      document.getElementById("resultReflection").textContent = state.reflectionText;
+
+      step3Screen.classList.add("hidden");
+      step4Screen.classList.remove("hidden");
+    });
+  </script>
+</body>
+</html>
